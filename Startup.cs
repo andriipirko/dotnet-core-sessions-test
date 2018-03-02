@@ -25,7 +25,6 @@ namespace WebAPI
         {
             services.AddMvc()
                 .AddSessionStateTempDataProvider();
-            //services.AddDistributedMemoryCache();
             services.AddSession();
         }
 
