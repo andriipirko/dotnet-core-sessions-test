@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Session;
+using WebAPI.Models;
+using WebAPI.Models.UserModels;
 
 namespace WebAPI.Controllers
 {
@@ -12,30 +14,49 @@ namespace WebAPI.Controllers
     [Route("api/Authorization")]
     public class AuthorizationController : Controller
     {
-        [HttpPost]
-        public void Post(string name = null, string password = null)
+        [HttpGet("/api/Authorization/check", Name = "", Order = 1)]
+        public bool Get()
         {
-            if (name == "Bogdan" && password == "KpacaBa")
+            if (HttpContext.Session.GetInt32("authorizated") == 1)
             {
-                HttpContext.Session.SetInt32("authorizated", 1);
+                return true;
             }
             else
             {
-                HttpContext.Session.SetInt32("authorizated", 0);
+                return false;
             }
         }
 
         [HttpGet]
-        public string Get()
+        public UserToReturn Get(string login, string password)
         {
-            if (HttpContext.Session.GetInt32("authorizated") == 1)
+            DbContext _user_context = HttpContext.RequestServices.GetService(typeof(DbContext)) as DbContext;
+            UserFromDbModel _user = _user_context.GetCurrentUser(login);
+            UserToReturn result = new UserToReturn();
+
+            if (_user == null)
             {
-                return "Бодя Яворський чоткий пацан.";
+                HttpContext.Session.Clear();
+            }
+            else if (_user.upassword == password)
+            {
+                HttpContext.Session.SetInt32("authorizated", 1);
+                result.authorizated = true;
+                if (_user.administrator)
+                    result.administrator = true;
+                if (_user.accounter)
+                    result.accounter = true;
+                if (_user.customer)
+                    result.customer = true;
+                if (_user.realizator)
+                    result.realizator = true;
             }
             else
             {
-                return "Спробуй ще разок :)";
-            }
+                HttpContext.Session.Clear();
+            }            
+
+            return result;
         }
     }
 }

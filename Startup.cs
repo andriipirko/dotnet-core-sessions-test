@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WebAPI.Models;
 
 namespace WebAPI
 {
@@ -25,8 +26,11 @@ namespace WebAPI
         {
             services.AddMvc()
                 .AddSessionStateTempDataProvider();
-            //services.AddDistributedMemoryCache();
             services.AddSession();
+            services.Add(new ServiceDescriptor(
+                typeof(DbContext), 
+                new DbContext("server=127.0.0.1;port=3306;database=accounting;user=root;password=root;")
+                ));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -37,8 +41,7 @@ namespace WebAPI
                 app.UseDeveloperExceptionPage();
             }
             app.UseSession();
-            app.UseMvcWithDefaultRoute();
-            
+            app.UseMvcWithDefaultRoute();            
         }
     }
 }
